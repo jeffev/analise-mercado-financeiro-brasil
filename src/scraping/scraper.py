@@ -57,7 +57,7 @@ def coletar_indicadores(ticker):
     finally:
         driver.quit()
 
-# Exemplo de uso:
+
 tickers = [
     "PETR4",  # Petróleo Brasileiro S.A. - Petrobras
     "VALE3",  # Vale S.A.
