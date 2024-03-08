@@ -6,6 +6,20 @@ import csv
 import os
 import time
 
+def fechar_pop_ups(driver):
+    popups = driver.find_elements(By.CSS_SELECTOR, ".popup-fixed .btn-close")
+    for popup in popups:
+        try:
+            # Tenta clicar no botão de fechar do popup
+            WebDriverWait(driver, 3).until(EC.element_to_be_clickable(popup)).click()
+            print("Popup fechado com sucesso.")
+            # Espera um pouco para garantir que o popup seja fechado
+            time.sleep(1)  # Reduz o tempo de espera se não for necessário tanto
+        except Exception as e:
+            # Captura qualquer exceção que possa ocorrer durante o fechamento do popup
+            print("Erro ao fechar popup:", str(e))
+
+
 def coletar_indicadores(ticker):
     driver = webdriver.Chrome()
 
@@ -14,21 +28,23 @@ def coletar_indicadores(ticker):
     driver.get(url)
 
     # Espera para a página carregar
-    time.sleep(2)
+    time.sleep(1)
 
     try:
         # Tenta fechar pop-ups de propaganda, se existirem
-        popups = driver.find_elements(By.CSS_SELECTOR, ".popup-fixed .btn-close")
-        for popup in popups:
-            try:
+        #popups = driver.find_elements(By.CSS_SELECTOR, ".popup-fixed .btn-close")
+        #for popup in popups:
+        #    try:
                 # Tenta clicar no botão de fechar do popup
-                WebDriverWait(driver, 3).until(EC.element_to_be_clickable(popup)).click()
-                print("Popup fechado com sucesso.")
+        #        WebDriverWait(driver, 3).until(EC.element_to_be_clickable(popup)).click()
+        #        print("Popup fechado com sucesso.")
                 # Espera um pouco para garantir que o popup seja fechado
-                time.sleep(1)  # Reduz o tempo de espera se não for necessário tanto
-            except Exception as e:
+        #        time.sleep(1)  # Reduz o tempo de espera se não for necessário tanto
+        #    except Exception as e:
                 # Captura qualquer exceção que possa ocorrer durante o fechamento do popup
-                print("Erro ao fechar popup:", str(e))
+        #        print("Erro ao fechar popup:", str(e))
+
+        fechar_pop_ups(driver)
 
         # Aguarda até que o botão Histórico esteja presente e clica nele
         historico_button = WebDriverWait(driver, 10).until(
@@ -37,7 +53,9 @@ def coletar_indicadores(ticker):
         historico_button.click()
         
         # Após clicar no histórico, aguarda 2 segundos
-        time.sleep(2)
+        time.sleep(1)
+
+        fechar_pop_ups(driver)
 
         # Utiliza JavaScript para clicar no botão "Máx."
         max_button = WebDriverWait(driver, 10).until(
@@ -46,7 +64,9 @@ def coletar_indicadores(ticker):
         driver.execute_script("arguments[0].click();", max_button)
 
         # Após clicar no MAX, aguarda 2 segundos
-        time.sleep(2)
+        time.sleep(1)
+
+        fechar_pop_ups(driver)
 
         WebDriverWait(driver, 20).until(
             EC.presence_of_element_located((By.CLASS_NAME, 'table-history'))
@@ -60,6 +80,13 @@ def coletar_indicadores(ticker):
         with open(filepath, 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
             
+            table = driver.find_element(By.CSS_SELECTOR, ".table-history")
+
+            # Extrai e escreve os cabeçalhos das colunas
+            headers = table.find_element(By.CSS_SELECTOR, ".tr").find_elements(By.CSS_SELECTOR, ".th")
+            header_row = ['Tipo do Indicador', 'Nome do Indicador'] + [header.text for header in headers]
+            writer.writerow(header_row)
+
             # Identifica todos os grupos de indicadores
             groups = driver.find_elements(By.CSS_SELECTOR, ".indicator-historical-container .indicators")
             for group in groups:
@@ -73,9 +100,9 @@ def coletar_indicadores(ticker):
                 nomes_indicadores = [nome.text for nome in group.find_elements(By.CSS_SELECTOR, "h3.title")]
 
                 # Extrai e escreve os cabeçalhos das colunas
-                headers = table.find_element(By.CSS_SELECTOR, ".tr").find_elements(By.CSS_SELECTOR, ".th")
-                header_row = ['Tipo do Indicador', 'Nome do Indicador'] + [header.text for header in headers]
-                writer.writerow(header_row)
+                #headers = table.find_element(By.CSS_SELECTOR, ".tr").find_elements(By.CSS_SELECTOR, ".th")
+                #header_row = ['Tipo do Indicador', 'Nome do Indicador'] + [header.text for header in headers]
+                #writer.writerow(header_row)
                 
                 # Extrai e escreve os dados das linhas da tabela
                 data_rows = table.find_elements(By.CSS_SELECTOR, ".tr")[1:]  # Ignora a linha de cabeçalho
@@ -84,33 +111,23 @@ def coletar_indicadores(ticker):
                     row_data = [indicador_nome_grupo, nomes_indicadores[i]] + [cell.text for cell in data_cells]
                     writer.writerow(row_data)
 
-                # Escreve uma linha vazia para separar os grupos de indicadores
-                writer.writerow([])
-
     finally:
         driver.quit()
 
 
+#tickers das 100 ações que compõem o Índice Brasil 100 (IBXX)
 tickers = [
-    "PETR4",  # Petróleo Brasileiro S.A. - Petrobras
-    "VALE3",  # Vale S.A.
-    "ITUB4",  # Itaú Unibanco Holding S.A.
-    "BBDC4",  # Banco Bradesco S.A.
-    "ABEV3",  # Ambev S.A.
-    "B3SA3",  # B3 S.A. - Brasil, Bolsa, Balcão
-    "WEGE3",  # WEG S.A.
-    "MGLU3",  # Magazine Luiza S.A.
-    "BBAS3",  # Banco do Brasil S.A.
-    "GGBR4",  # Gerdau S.A.
-    "CSNA3",  # Companhia Siderúrgica Nacional
-    "LREN3",  # Lojas Renner S.A.
-    "ITSA4",  # Itaúsa - Investimentos Itaú S.A.
-    "JBSS3",  # JBS S.A.
-    "EQTL3",  # Equatorial Energia S.A.
-    "BRFS3",  # BRF S.A.
-    "HYPE3",  # Hypera Pharma
-    "SUZB3",  # Suzano S.A.
-    "RAIL3",  # Rumo S.A.
+    "ABEV3", "ALPA4", "AMER3", "ASAI3", "AZUL4", "B3SA3", "BBAS3", "BBDC3",
+    "BBDC4", "BBSE3", "BEEF3", "BIDI11", "BPAC11", "BRAP4", "BRFS3", "BRKM5",
+    "BRML3", "CASH3", "CCRO3", "CIEL3", "CMIG4", "COGN3", "CPFE3", "CPLE6",
+    "CRFB3", "CSAN3", "CSNA3", "CVCB3", "CYRE3", "DXCO3", "ECOR3", "EGIE3",
+    "ELET3", "ELET6", "EMBR3", "ENBR3", "ENEV3", "ENGI11", "EQTL3", "EZTC3",
+    "FLRY3", "GGBR4", "GOAU4", "GOLL4", "HAPV3", "HYPE3", "IGTI11", "IRBR3",
+    "ITSA4", "ITUB4", "JBSS3", "JHSF3", "KLBN11", "LAME4", "LCAM3", "LREN3",
+    "MGLU3", "MRFG3", "MRVE3", "MULT3", "NTCO3", "PCAR3", "PETR3", "PETR4",
+    "PRIO3", "QUAL3", "RADL3", "RAIL3", "RENT3", "RRRP3", "SANB11", "SBSP3",
+    "SOMA3", "STBP3", "SUZB3", "TAEE11", "TIMS3", "TOTS3", "UGPA3", "USIM5",
+    "VALE3", "VBBR3", "VIIA3", "VIVT3", "WEGE3", "YDUQ3"
 ]
 
 # Iterar sobre a lista de tickers e chamar a função para cada um
