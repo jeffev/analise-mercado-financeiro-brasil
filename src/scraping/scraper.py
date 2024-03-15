@@ -31,19 +31,6 @@ def coletar_indicadores(ticker):
     time.sleep(1)
 
     try:
-        # Tenta fechar pop-ups de propaganda, se existirem
-        #popups = driver.find_elements(By.CSS_SELECTOR, ".popup-fixed .btn-close")
-        #for popup in popups:
-        #    try:
-                # Tenta clicar no botão de fechar do popup
-        #        WebDriverWait(driver, 3).until(EC.element_to_be_clickable(popup)).click()
-        #        print("Popup fechado com sucesso.")
-                # Espera um pouco para garantir que o popup seja fechado
-        #        time.sleep(1)  # Reduz o tempo de espera se não for necessário tanto
-        #    except Exception as e:
-                # Captura qualquer exceção que possa ocorrer durante o fechamento do popup
-        #        print("Erro ao fechar popup:", str(e))
-
         fechar_pop_ups(driver)
 
         # Aguarda até que o botão Histórico esteja presente e clica nele
@@ -99,11 +86,6 @@ def coletar_indicadores(ticker):
                 # Extrai os nomes dos indicadores dentro do grupo
                 nomes_indicadores = [nome.text for nome in group.find_elements(By.CSS_SELECTOR, "h3.title")]
 
-                # Extrai e escreve os cabeçalhos das colunas
-                #headers = table.find_element(By.CSS_SELECTOR, ".tr").find_elements(By.CSS_SELECTOR, ".th")
-                #header_row = ['Tipo do Indicador', 'Nome do Indicador'] + [header.text for header in headers]
-                #writer.writerow(header_row)
-                
                 # Extrai e escreve os dados das linhas da tabela
                 data_rows = table.find_elements(By.CSS_SELECTOR, ".tr")[1:]  # Ignora a linha de cabeçalho
                 for i, row in enumerate(data_rows):
