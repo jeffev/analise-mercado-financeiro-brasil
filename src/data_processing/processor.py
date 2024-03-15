@@ -79,20 +79,26 @@ def processar_dados(ticker, start_date, end_date):
     return df_transposed
     
 
-#tickers das 100 ações que compõem o Índice Brasil 100 (IBXX)
+#tickers das ações que compõem o Índice IBXX
 tickers = [
-    "ABEV3", "ALPA4", "AMER3", "ASAI3", "AZUL4", "B3SA3", "BBAS3", "BBDC3",
-    "BBDC4", "BBSE3", "BEEF3", "BIDI11", "BPAC11", "BRAP4", "BRFS3", "BRKM5",
-    "BRML3", "CASH3", "CCRO3", "CIEL3", "CMIG4", "COGN3", "CPFE3", "CPLE6",
-    "CRFB3", "CSAN3", "CSNA3", "CVCB3", "CYRE3", "DXCO3", "ECOR3", "EGIE3",
-    "ELET3", "ELET6", "EMBR3", "ENBR3", "ENEV3", "ENGI11", "EQTL3", "EZTC3",
-    "FLRY3", "GGBR4", "GOAU4", "GOLL4", "HAPV3", "HYPE3", "IGTI11", "IRBR3",
-    "ITSA4", "ITUB4", "JBSS3", "JHSF3", "KLBN11", "LAME4", "LCAM3", "LREN3",
-    "MGLU3", "MRFG3", "MRVE3", "MULT3", "NTCO3", "PCAR3", "PETR3", "PETR4",
-    "PRIO3", "QUAL3", "RADL3", "RAIL3", "RENT3", "RRRP3", "SANB11", "SBSP3",
-    "SOMA3", "STBP3", "SUZB3", "TAEE11", "TIMS3", "TOTS3", "UGPA3", "USIM5",
-    "VALE3", "VBBR3", "VIIA3", "VIVT3", "WEGE3", "YDUQ3"
+    "VALE3", "ITUB4", "PETR4", "ELET3", "BBAS3", "BBDC4",
+    "B3SA3", "ITSA4", "ABEV3", "WEGE3", "RENT3", "BPAC11",
+    "SUZB3", "PRIO3", "EQTL3", "RADL3", "UGPA3", "RDOR3",
+    "BRFS3", "VBBR3", "RAIL3", "JBSS3", "SBSP3", "GGBR4",
+    "VIVT3", "BBSE3", "EMBR3", "ENEV3", "ASAI3", "CSAN3",
+    "HAPV3", "CPLE6", "KLBN11", "ENGI11", "CMIG4", "TOTS3",
+    "LREN3", "NTCO3", "TIMS3", "CCRO3", "HYPE3", "ELET6",
+    "ALOS3", "STBP3", "SANB11", "TRPL4", "CSNA3", "SMFT3",
+    "TAEE11", "MULT3", "RRRP3", "CYRE3", "CRFB3", "GOAU4",
+    "MGLU3", "CPFE3", "CMIN3", "YDUQ3", "RECV3", "CIEL3",
+    "PSSA3", "BRKM5", "IGTI11", "USIM5", "COGN3", "BRAP4",
+    "POMO4", "RAIZ4", "AZUL4", "VIVA3", "SMTO3", "GMAT3",
+    "ARZZ3", "CSMG3", "SLCE3", "SOMA3", "AURE3", "VAMO3",
+    "FLRY3", "MRFG3", "IRBR3", "MRVE3", "ECOR3", "MDIA3",
+    "DIRR3", "DXCO3", "LWSA3", "BEEF3", "ALPA4", "CVCB3",
+    "EZTC3", "PETZ3", "TEND3", "MOVI3", "BHIA3", "PCAR3",
 ]
+
 
 # Lista para armazenar os DataFrames processados
 dfs = []
