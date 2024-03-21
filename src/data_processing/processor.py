@@ -116,4 +116,4 @@ for ticker in tqdm(tickers, desc="Processando dados"):
 df_final = pd.concat(dfs)
 
 # Gravar o DataFrame final em um arquivo Parquet
-df_final.to_parquet('data/processed/dados_processados.parquet', index=False)
+df_final.to_csv('data/processed/dados_processados.csv', index=False)
