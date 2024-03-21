@@ -10,25 +10,25 @@ def close_price_mean_for_year(df, year):
     return df_year['Close'].mean()
 
 def set_alvo(preco_ano_atual, preco_ano_seguinte):
-  """
-  Define o valor do campo "Alvo" com base nos preços.
+    """
+    Define o valor do campo "Alvo" com base nos preços.
 
-  Args:
-    preco_ano_atual: Preço do ano atual.
-    preco_ano_seguinte: Preço do ano seguinte.
+    Args:
+        preco_ano_atual: Preço do ano atual.
+        preco_ano_seguinte: Preço do ano seguinte.
 
-  Returns:
-    String com o valor do campo "Alvo" ("Barata", "Cara" ou "Neutra").
-  """
-
-  if preco_ano_atual is None or preco_ano_seguinte is None:
-    return None
-  elif preco_ano_seguinte > preco_ano_atual * 1.15:
-    return "Barata"
-  elif preco_ano_seguinte < preco_ano_atual * 0.85:
-    return "Cara"
-  else:
-    return "Neutra"
+    Returns:
+        String com o valor do campo "Alvo" ("Barata", "Cara" ou "Neutra").
+    """
+    if np.isnan(preco_ano_atual) or np.isnan(preco_ano_seguinte):
+        return None
+    else:
+        if preco_ano_seguinte > preco_ano_atual * 1.15:
+            return "Barata"
+        elif preco_ano_seguinte < preco_ano_atual * 0.85:
+            return "Cara"
+        else:
+            return "Neutra"
 
 def processar_dados(ticker, start_date, end_date):
     # Carregar dados
