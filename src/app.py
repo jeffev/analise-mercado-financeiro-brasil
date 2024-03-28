@@ -100,6 +100,14 @@ def predict_price_status(ticker):
 st.title('Análise de Ações')
 ticker = st.text_input('Digite o ticker da ação:')
 if st.button('Analisar'):
-    prediction = predict_price_status(ticker)
-    resultado_string = class_names[prediction[0]]
-    st.write(f'A ação {ticker.upper()} está classificada como: {resultado_string}')
+    indicators = get_indicators(ticker)
+    if indicators is None:
+        st.write(f'O ticker {ticker.upper()} é inválido.')
+    else:
+        df = pd.DataFrame(indicators, index=[0])
+        df.fillna(0, inplace=True)
+        df['Graam'] = df.apply(lambda row: safe_sqrt(22.5 * row['LPA'] * row['VPA']), axis=1)
+        prediction = gb_model.predict(df)
+        resultado_string = class_names[prediction[0]]
+        st.write(f'A ação {ticker.upper()} está classificada como: {resultado_string}')
+
