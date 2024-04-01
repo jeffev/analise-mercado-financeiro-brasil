@@ -6,10 +6,9 @@ Este projeto tem como objetivo extrair indicadores financeiros das ações do me
 
 A estrutura do projeto é dividida nas seguintes partes:
 
-- `data/`: Contém os dados brutos (`raw/`), processados (`processed/`) e externos (`external/`), se aplicável.
-- `notebooks/`: Jupyter notebooks são usados para exploração de dados (`exploration/`), processamento (`processing/`) e modelagem (`modeling/`).
-- `src/`: Código-fonte para scripts de webscraping (`scraping/`), processamento de dados (`data_processing/`), e modelos de machine learning (`models/`).
-- `tests/`: Testes automatizados, especialmente para o componente de webscraping.
+- `data/`: Contém os dados brutos (`raw/`), processados (`processed/`) e modelos gerados (`models/`).
+- `notebooks/`: Jupyter notebooks são usados para exploração e criação dos modelos (`exploration_modeling/`) e processamento (`processing/`).
+- `src/`: Código-fonte para scripts de webscraping (`scraping/`) e processamento de dados (`data_processing/`).
 - `requirements.txt`: Lista todas as dependências necessárias para executar o projeto.
 
 ## Como Executar
@@ -30,10 +29,14 @@ Para executar este projeto, siga os passos abaixo:
    ```
    python src/scraping/scraper.py
    ```
-5. Explore a análise inicial e o processamento de dados nos Jupyter notebooks em `notebooks/`.
-6. Treine o modelo de previsão usando o notebook ou script apropriado:
+5. Execute os scripts de processamento para processar os dados:
    ```
-   python src/models/train_model.py
+   python src/data_processing/processor.py
+   ```
+6. Explore a análise inicial e processamento e criação do modelo de dados nos Jupyter notebooks em `notebooks/exploration_modeling/previsoes_acoes.ipynb`.
+7. Para rodar a aplicação do Streamlit basta rodar o camando abaixo:
+   ```
+   streamlit run .\src\app.py 
    ```
 
 ## Contribuindo

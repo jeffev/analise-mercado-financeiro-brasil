@@ -111,3 +111,5 @@ if st.button('Analisar'):
         resultado_string = class_names[prediction[0]]
         st.write(f'A ação {ticker.upper()} está classificada como: {resultado_string}')
 
+# Adicionar link para o GitHub
+st.write("Para saber mais sobre o projeto e acessar o código-fonte, visite o [GitHub](https://github.com/jeffev/analise-mercado-financeiro-brasil).")
