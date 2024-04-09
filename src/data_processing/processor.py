@@ -31,10 +31,8 @@ def set_alvo(preco_ano_atual, preco_ano_seguinte):
             return "Neutra"
 
 def processar_dados(ticker, start_date, end_date):
-    # Carregar dados
     data = pd.read_csv(f"data/raw/indicadores_{ticker}.csv")
 
-    # Baixar os dados do Yahoo Finance
     precos = yf.download((ticker+'.SA'), start=start_date, end=end_date, interval="1wk")
 
     precos_df = pd.DataFrame(precos)
@@ -43,56 +41,39 @@ def processar_dados(ticker, start_date, end_date):
         print(f"Não foi possível baixar os dados para o ticker {ticker}.")
         return None
 
-    # Remover a coluna "Tipo do Indicador"
     data = data.drop('Tipo do Indicador', axis=1)
 
-    # Renomear a coluna "ATUAL" para "2024"
     data = data.rename(columns={'ATUAL': '2024'})
 
     df = pd.DataFrame(data)
 
-    # Remover caracteres especiais e ajustar o separador decimal
     for col in df.columns[1:]:
         df[col] = df[col].str.replace(",", ".").str.rstrip("%")
 
-
-    # Substituir '-' por NaN em todas as colunas exceto as duas primeiras
     df.iloc[:, 1:] = df.iloc[:, 1:].replace('-', np.nan)
 
-    # Converter as colunas para tipo numérico
     for col in df.columns[1:]:
         df[col] = pd.to_numeric(df[col], errors='coerce')
 
-    # Transpor o DataFrame
     df_transposed = df.transpose()
 
-    # Resetar o índice
     df_transposed = df_transposed.reset_index()
 
-
-    # Definir a primeira linha como o cabeçalho
     df_transposed.columns = df_transposed.iloc[0]
 
-    # Remover a primeira linha do DataFrame
     df_transposed = df_transposed[1:]
 
-    # Resetar o índice
     df_transposed = df_transposed.reset_index(drop=True)
 
-    #Troca o nome da coluna Nome do Indicador para Ano
     df_transposed = df_transposed.rename(columns={'Nome do Indicador': 'Ano'})
 
-    #adicionando o ticker
     df_transposed['Ticker'] = ticker
 
-    #preenche os valores null na coluna de dividendos com zero
     df_transposed['D.Y'] = df_transposed['D.Y'].astype(float).fillna(0)
 
-    # Aplicar a função para cada linha (ano) do DataFrame
     df_transposed['PrecoAnoSeguinte'] = df_transposed['Ano'].astype(int).apply(lambda x: close_price_mean_for_year(precos_df, x + 1))
     df_transposed['PrecoAnoAtual'] = df_transposed['Ano'].astype(int).apply(lambda x: close_price_mean_for_year(precos_df, x))
 
-    # Criar o campo alvo
     df_transposed['Alvo'] = df_transposed.apply(lambda x: set_alvo(x['PrecoAnoAtual'], x['PrecoAnoSeguinte']), axis=1)
     
     return df_transposed
@@ -131,8 +112,6 @@ for ticker in tqdm(tickers, desc="Processando dados"):
     df = processar_dados(ticker, start_date, end_date)
     dfs.append(df)
 
-# Juntar todos os DataFrames em um único DataFrame
 df_final = pd.concat(dfs)
 
-# Gravar o DataFrame final em um arquivo Parquet
 df_final.to_csv('data/processed/dados_processados.csv', index=False)
