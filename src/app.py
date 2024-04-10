@@ -45,7 +45,8 @@ indicators_mapping = {
     "ROIC": "ROIC",
     "GIRO ATIVOS": "GIRO ATIVOS",
     "CAGR RECEITAS 5 ANOS": "CAGR RECEITAS 5 ANOS",
-    "CAGR LUCROS 5 ANOS": "CAGR LUCROS 5 ANOS"
+    "CAGR LUCROS 5 ANOS": "CAGR LUCROS 5 ANOS",
+    "Graam": "Graam_formula"
 }
 
 # Função personalizada para calcular a raiz quadrada apenas para valores válidos
@@ -58,8 +59,26 @@ def safe_sqrt(x):
 model_dir = 'data/models'
 gb_model = load(f'{model_dir}/gradient_boosting_model.joblib')
 
-df = pd.read_csv('data/raw/statusinvest-busca-avancada.csv', sep=';')
-df.columns = df.columns.str.strip()
+@st.cache_data (ttl=3600)
+def load_data(file_path):
+    df = pd.read_csv(file_path, sep=';')
+    df.columns = df.columns.str.strip()
+    
+    for col in df.columns[1:]:
+        df[col] = df[col].str.replace('.', '').str.replace(',', '.')
+
+    df = df.apply(pd.to_numeric, errors='ignore')
+
+    df.fillna(0, inplace=True)
+
+    df['Graam_formula'] = df.apply(lambda row: safe_sqrt(22.5 * row['LPA'] * row['VPA']), axis=1)
+    df['Graam_formula'] = pd.to_numeric(df['Graam_formula'], errors='coerce')
+    
+    df['Desconto_Graam_PRECO'] = (df['PRECO'] - df['Graam_formula']) / df['Graam_formula'] * 100
+
+    return df
+
+df = load_data('data/raw/statusinvest-busca-avancada.csv')
 
 def get_indicators(ticker):
     if ticker.upper() in df['TICKER'].values:
@@ -77,32 +96,33 @@ def get_indicators(ticker):
         print(f"Ticker {ticker.upper()} não encontrado no arquivo CSV.")
         return None
 
-def predict_price_status(ticker):
-    indicators = get_indicators(ticker)
+def pagina_previsao_acoes():
+    st.title('Previsão de Ações')
+    ticker = st.text_input('Digite o ticker da ação:', key='ticker_input')
+    
+    if st.button('Analisar'):
+        indicators = get_indicators(ticker)
+        if indicators is None:
+            st.write(f'O ticker {ticker.upper()} é inválido.')
+        else:
+            df = pd.DataFrame(indicators, index=[0])
+            
+            prediction = gb_model.predict(df)
+            resultado_string = class_names[prediction[0]]
+            st.markdown(f'<p style="color: {colors[resultado_string]};">A ação {ticker.upper()} está classificada como: {resultado_string}</p>', unsafe_allow_html=True)
 
-    df = pd.DataFrame(indicators, index=[0])
+def pagina_lista_acoes():
+    st.title('Lista de Ações')
+    st.write(df)
 
-    df.fillna(0, inplace=True)
+pagina_selecionada = st.sidebar.selectbox(
+    'Selecione a página:',
+    ['Previsão de Ações', 'Lista de Ações']
+)
 
-    df = df.copy()
-    df['Graam'] = df.apply(lambda row: safe_sqrt(22.5 * row['LPA'] * row['VPA']), axis=1)
-
-    prediction = gb_model.predict(df)
-
-    return prediction
-
-st.title('Análise de Ações')
-ticker = st.text_input('Digite o ticker da ação:')
-if st.button('Analisar'):
-    indicators = get_indicators(ticker)
-    if indicators is None:
-        st.write(f'O ticker {ticker.upper()} é inválido.')
-    else:
-        df = pd.DataFrame(indicators, index=[0])
-        df.fillna(0, inplace=True)
-        df['Graam'] = df.apply(lambda row: safe_sqrt(22.5 * row['LPA'] * row['VPA']), axis=1)
-        prediction = gb_model.predict(df)
-        resultado_string = class_names[prediction[0]]
-        st.markdown(f'<p style="color: {colors[resultado_string]};">A ação {ticker.upper()} está classificada como: {resultado_string}</p>', unsafe_allow_html=True)
+if pagina_selecionada == 'Previsão de Ações':
+    pagina_previsao_acoes()
+elif pagina_selecionada == 'Lista de Ações':
+    pagina_lista_acoes()
 
 st.write("Para saber mais sobre o projeto e acessar o código-fonte, visite o [GitHub](https://github.com/jeffev/analise-mercado-financeiro-brasil).")
