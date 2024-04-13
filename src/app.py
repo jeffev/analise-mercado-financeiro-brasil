@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
-from joblib import load
 import numpy as np
+import streamlit_highcharts as hg
+
+from joblib import load
+from streamlit_option_menu import option_menu
 
 class_names = {
     1: "Cara",
@@ -59,7 +62,14 @@ def safe_sqrt(x):
 model_dir = 'data/models'
 gb_model = load(f'{model_dir}/gradient_boosting_model.joblib')
 
-@st.cache_data (ttl=3600)
+@st.cache_data (ttl=36000)
+def load_sentimento_composto():
+    return np.load("data/processed/sentimento_composto.npy")
+
+sentimento_composto = load_sentimento_composto()
+sentimento_composto = [round(valor * 100, 2) for valor in sentimento_composto]
+
+@st.cache_data (ttl=36000)
 def load_data(file_path):
     df = pd.read_csv(file_path, sep=';')
     df.columns = df.columns.str.strip()
@@ -103,7 +113,7 @@ def pagina_previsao_acoes():
     if st.button('Analisar'):
         indicators = get_indicators(ticker)
         if indicators is None:
-            st.write(f'O ticker {ticker.upper()} é inválido.')
+            st.write(f'O ticker {ticker.upper()} é inválido. Exemplo: VALE3')
         else:
             df = pd.DataFrame(indicators, index=[0])
             
@@ -115,14 +125,75 @@ def pagina_lista_acoes():
     st.title('Lista de Ações')
     st.write(df)
 
-pagina_selecionada = st.sidebar.selectbox(
-    'Selecione a página:',
-    ['Previsão de Ações', 'Lista de Ações']
-)
+def pagina_sentimento_mercado():
+    chartDef={ 'chart': { 'height': '90%',
+                'type': 'solidgauge'},
+    'pane': { 'background': [ { 'borderWidth': 0,
+                                'innerRadius': '88%',
+                                'radius': '112%'},
+                                { 'borderWidth': 0,
+                                'innerRadius': '63%',
+                                'radius': '87%'},
+                                { 'borderWidth': 0,
+                                'innerRadius': '38%',
+                                'radius': '62%'}],
+                'endAngle': 360,
+                'startAngle': 0},
+    'plotOptions': { 'solidgauge': { 'dataLabels': { 'enabled': False},
+                                    'linecap': 'round',
+                                    'rounded': True,
+                                    'stickyTracking': False}},
+    'series': [ { 'data': [ { 'color': 'lightgreen',
+                                'innerRadius': '88%',
+                                'radius': '112%',
+                                'y': 80}],
+                    'name': 'Positivo'},
+                { 'data': [ { 'color': 'red',
+                                'innerRadius': '63%',
+                                'radius': '87%',
+                                'y': 65}],
+                    'name': 'Negativo'},
+                { 'data': [ { 'color': 'blue',
+                                'innerRadius': '38%',
+                                'radius': '62%',
+                                'y': 50}],
+                    'name': 'Neutro'}],
+    'title': { 'style': { 'fontSize': '24px'},
+                'text': 'Sentimento do mercado'},
+    'tooltip': { 'backgroundColor': 'none',
+                'borderWidth': 0,
+                'pointFormat': '{series.name}<br><span '
+                                'style="font-size:2em; '
+                                'color: '
+                                '{point.color}; '
+                                'font-weight: '
+                                'bold">{point.y}</span>',
+                'positioner': { 'x': '50px',
+                                'y': 100},
+                'shadow': False,
+                'style': { 'fontSize': '16px'},
+                'valueSuffix': '%'},
+    'yAxis': { 'lineWidth': 0,
+                'max': 100,
+                'min': 0,
+                'tickPositions': []}}
+
+    # Atualizar os valores de y nas séries
+    chartDef['series'][0]['data'][0]['y'] = sentimento_composto[2]  # Positivo
+    chartDef['series'][1]['data'][0]['y'] = sentimento_composto[0]  # Negativo
+    chartDef['series'][2]['data'][0]['y'] = sentimento_composto[1]  # Neutro
+
+    hg.streamlit_highcharts(chartDef,640)
+
+with st.sidebar:
+    pagina_selecionada = option_menu("Investlink", ["Previsão de Ações", 'Lista de Ações', 'Sentimento do mercado'], 
+        icons=['file-earmark-bar-graph', 'list-task', 'emoji-heart-eyes'], menu_icon="cast", default_index=0)
 
 if pagina_selecionada == 'Previsão de Ações':
     pagina_previsao_acoes()
 elif pagina_selecionada == 'Lista de Ações':
     pagina_lista_acoes()
+elif pagina_selecionada == 'Sentimento do mercado':
+    pagina_sentimento_mercado()
 
 st.write("Para saber mais sobre o projeto e acessar o código-fonte, visite o [GitHub](https://github.com/jeffev/analise-mercado-financeiro-brasil).")

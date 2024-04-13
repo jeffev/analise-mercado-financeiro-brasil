@@ -1,40 +1,47 @@
-import pandas as pd
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import PorterStemmer
-from tqdm import tqdm
-import os
+import torch
+import numpy as np
 
-nltk.download('punkt')
-nltk.download('stopwords')
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-stop_words = set(stopwords.words('portuguese'))
-ps = PorterStemmer()
+# Carrega o modelo e tokenizer pré-treinado para sentimento Sebrae
+model = AutoModelForSequenceClassification.from_pretrained("ggrazzioli/cls_sentimento_sebrae")
+tokenizer = AutoTokenizer.from_pretrained("ggrazzioli/cls_sentimento_sebrae")
 
-# Função para pré-processamento de texto
-def preprocess_text(text):
-    tokens = word_tokenize(text.lower())
-    tokens = [token for token in tokens if token.isalnum()]
-    tokens = [token for token in tokens if token not in stop_words]
-    tokens = [ps.stem(token) for token in tokens]
-    return ' '.join(tokens)
+# Função para converter logits em sentimento
+def get_sentimento(logits):
+    probs = torch.nn.functional.softmax(logits, dim=-1)
+    sentimentos = ["Negativo", "Neutro", "Positivo"]
+    sentimento = sentimentos[torch.argmax(probs)]
+    return sentimento
 
-# Ler o arquivo CSV
-input_file = 'data/raw/noticias.csv'
-output_folder = 'data/processed'
-os.makedirs(output_folder, exist_ok=True)
-output_file = os.path.join(output_folder, 'noticias.parquet')
+caminho_arquivo = "data/raw/noticias.csv"
 
-df_processed = pd.DataFrame(columns=['Título Processado'])
+with open(caminho_arquivo, "r", encoding="utf-8") as arquivo:
+    frases = arquivo.readlines()
 
-with open(input_file, mode='r', encoding='utf-8') as file:
-    for line in tqdm(file.readlines()):
-        title = line.strip()
-        processed_title = preprocess_text(title)
-        df_processed.loc[len(df_processed)] = [processed_title]
+logits_list = []
 
-# Salvar o DataFrame processado em formato Parquet
-df_processed.to_parquet(output_file, index=False)
+for frase in frases:
+    inputs = tokenizer(frase, return_tensors="pt")
 
-print(f'Dados processados e gravados com sucesso em {output_file}')
+    outputs = model(**inputs)
+
+
+    probabilities = torch.softmax(logits, dim=1)
+
+    print("##########")
+    print(frase)
+    
+    print(probabilities.detach().numpy()[0])
+    print(get_sentimento(logits))
+
+    logits_list.append(probabilities.detach().numpy()[0])
+
+logits_array = np.array(logits_list)
+
+sentimento_composto = np.median(logits_array, axis=0)
+
+print("Sentimento composto:", sentimento_composto)
+
+# Grava o sentimento composto em um arquivo para utilizar no deploy
+np.save("data/processed/sentimento_composto.npy", sentimento_composto)
