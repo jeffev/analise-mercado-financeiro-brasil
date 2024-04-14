@@ -26,6 +26,7 @@ for frase in frases:
 
     outputs = model(**inputs)
 
+    logits = outputs.logits
 
     probabilities = torch.softmax(logits, dim=1)
 

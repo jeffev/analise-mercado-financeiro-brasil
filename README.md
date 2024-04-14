@@ -47,3 +47,21 @@ Jefferson Valandro - [Site Pessoal](https://jeffev.github.io/jeffersonvalandro/)
 
 ## Licença
 Este projeto está licenciado sob a [Licença MIT](https://opensource.org/licenses/MIT).
+
+
+## Bônus
+
+### Lista de Ações com Fórmula de Graham
+
+Para visualizar ações em potencial, foi implementada a fórmula de Graham para avaliação. A fórmula de Graham considera o preço da ação, o lucro por ação (LPA) e o preço sobre o lucro (P/L) para determinar se uma ação está subvalorizada, sobrevalorizada ou com preço justo. A fórmula é dada por:
+
+\[ P = \sqrt{22.5 \times \text{LPA} \times \text{P/L}} \]
+
+onde:
+- \( P \) é o preço que a ação deveria ter;
+- \( \text{LPA} \) é o lucro por ação;
+- \( \text{P/L} \) é o preço sobre o lucro.
+
+### Análise de Sentimento do Mercado
+
+Foi realizada uma análise de sentimento do mercado utilizando as últimas notícias do site br.investing.com. As notícias foram analisadas para determinar se o sentimento geral do mercado é positivo, neutro ou negativo. Isso pode fornecer insights adicionais para a tomada de decisão em relação às previsões das ações.

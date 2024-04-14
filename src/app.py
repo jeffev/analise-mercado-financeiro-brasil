@@ -6,6 +6,8 @@ import streamlit_highcharts as hg
 from joblib import load
 from streamlit_option_menu import option_menu
 
+st.set_page_config(page_title="Investlink")
+
 class_names = {
     1: "Cara",
     2: "Barata",
