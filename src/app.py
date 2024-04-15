@@ -1,126 +1,28 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import streamlit_highcharts as hg
 
 from joblib import load
 from streamlit_option_menu import option_menu
+from utils.utils import colors
+from utils.data_loader import get_sentimento_composto, load_data
+from utils.model import prever_classificacao_acao
 
 st.set_page_config(page_title="Investlink")
 
-class_names = {
-    1: "Cara",
-    2: "Barata",
-    3: "Neutra"
-}
-
-colors = {
-    'Barata': 'green',
-    'Cara': 'red',
-    'Neutra': 'blue'
-}
-
-indicators_mapping = {
-    "D.Y": "DY",
-    "P/L": "P/L",
-    "PEG RATIO": "PEG Ratio",
-    "P/VP": "P/VP",
-    "EV/EBITDA": "EV/EBIT",
-    "EV/EBIT": "EV/EBIT",
-    "P/EBITDA": "P/EBIT",
-    "P/EBIT": "P/EBIT",
-    "VPA": "VPA",
-    "P/ATIVO": "P/ATIVOS",
-    "LPA": "LPA",
-    "P/SR": "PSR",
-    "P/CAP. GIRO": "P/CAP. GIRO",
-    "P/ATIVO CIRC. LIQ.": "P. AT CIR. LIQ.",
-    "DÍV. LÍQUIDA/PL": "DIV. LIQ. / PATRI.",
-    "DÍV. LÍQUIDA/EBITDA": "DIVIDA LIQUIDA / EBIT",
-    "DÍV. LÍQUIDA/EBIT": "DIVIDA LIQUIDA / EBIT",
-    "PL/ATIVOS": "PATRIMONIO / ATIVOS",
-    "PASSIVOS/ATIVOS": "PASSIVOS / ATIVOS",
-    "LIQ. CORRENTE": "LIQ. CORRENTE",
-    "M. BRUTA": "MARGEM BRUTA",
-    "M. EBITDA": "MARGEM EBIT",
-    "M. EBIT": "MARGEM EBIT",
-    "M. LÍQUIDA": "MARG. LIQUIDA",
-    "ROE": "ROE",
-    "ROA": "ROA",
-    "ROIC": "ROIC",
-    "GIRO ATIVOS": "GIRO ATIVOS",
-    "CAGR RECEITAS 5 ANOS": "CAGR RECEITAS 5 ANOS",
-    "CAGR LUCROS 5 ANOS": "CAGR LUCROS 5 ANOS",
-    "Graam": "Graam_formula"
-}
-
-# Função personalizada para calcular a raiz quadrada apenas para valores válidos
-def safe_sqrt(x):
-    if x >= 0:
-        return np.sqrt(x)
-    else:
-        return -1
-
-model_dir = 'data/models'
-gb_model = load(f'{model_dir}/gradient_boosting_model.joblib')
-
-@st.cache_data (ttl=36000)
-def load_sentimento_composto():
-    return np.load("data/processed/sentimento_composto.npy")
-
-sentimento_composto = load_sentimento_composto()
-sentimento_composto = [round(valor * 100, 2) for valor in sentimento_composto]
-
-@st.cache_data (ttl=36000)
-def load_data(file_path):
-    df = pd.read_csv(file_path, sep=';')
-    df.columns = df.columns.str.strip()
-    
-    for col in df.columns[1:]:
-        df[col] = df[col].str.replace('.', '').str.replace(',', '.')
-
-    df = df.apply(pd.to_numeric, errors='ignore')
-
-    df.fillna(0, inplace=True)
-
-    df['Graam_formula'] = df.apply(lambda row: safe_sqrt(22.5 * row['LPA'] * row['VPA']), axis=1)
-    df['Graam_formula'] = pd.to_numeric(df['Graam_formula'], errors='coerce')
-    
-    df['Desconto_Graam_PRECO'] = (df['PRECO'] - df['Graam_formula']) / df['Graam_formula'] * 100
-
-    return df
-
-df = load_data('data/raw/statusinvest-busca-avancada.csv')
-
-def get_indicators(ticker):
-    if ticker.upper() in df['TICKER'].values:
-        # Selecionar a linha correspondente ao ticker
-        indicators_row = df.loc[df['TICKER'] == ticker.upper()]
-        
-        # Extrair os indicadores da linha
-        indicators = {}
-        for indicator_name, column_name in indicators_mapping.items():
-            value_str = str(indicators_row[column_name].values[0]).replace(',', '.')
-            indicators[indicator_name] = float(value_str)
-
-        return indicators
-    else:
-        print(f"Ticker {ticker.upper()} não encontrado no arquivo CSV.")
-        return None
+sentimento_composto = get_sentimento_composto()
+df = load_data()
+gb_model = load('data/models/gradient_boosting_model.joblib')
 
 def pagina_previsao_acoes():
     st.title('Previsão de Ações')
     ticker = st.text_input('Digite o ticker da ação:', key='ticker_input')
     
     if st.button('Analisar'):
-        indicators = get_indicators(ticker)
-        if indicators is None:
+        resultado_string = prever_classificacao_acao(ticker, df)
+        if resultado_string is None:
             st.write(f'O ticker {ticker.upper()} é inválido. Exemplo: VALE3')
         else:
-            df = pd.DataFrame(indicators, index=[0])
-            
-            prediction = gb_model.predict(df)
-            resultado_string = class_names[prediction[0]]
             st.markdown(f'<p style="color: {colors[resultado_string]};">A ação {ticker.upper()} está classificada como: {resultado_string}</p>', unsafe_allow_html=True)
 
 def pagina_lista_acoes():
