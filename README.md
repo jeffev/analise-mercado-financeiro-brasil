@@ -1,6 +1,16 @@
 # Projeto de Previsão de Ações
 
-Este projeto tem como objetivo extrair indicadores financeiros das ações do mercado brasileiro através de webscraping no site StatusInvest, processar esses dados, realizar uma análise exploratória, e finalmente, treinar um modelo de machine learning para prever se o preço de uma ação vai subir ou cair.
+Este projeto visa prever se a ação esta cara, barata ou netra utilizando indicadores financeiros extraídos do mercado brasileiro por meio de webscraping no site StatusInvest. Além disso, inclui análise exploratória dos dados e treinamento de modelos de machine learning.
+
+## Bônus
+
+### Lista de Ações com Fórmula de Graham
+
+Para visualizar ações em potencial, foi implementada a fórmula de Graham para avaliação. A fórmula de Graham considera o preço da ação, o lucro por ação (LPA) e o preço sobre o lucro (P/L) para determinar se uma ação está subvalorizada, sobrevalorizada ou com preço justo. A fórmula é dada por:
+
+### Análise de Sentimento do Mercado
+
+Foi realizada uma análise de sentimento do mercado utilizando as últimas notícias do site br.investing.com. As notícias foram analisadas para determinar se o sentimento geral do mercado é positivo, neutro ou negativo. Isso pode fornecer insights adicionais para a tomada de decisão em relação às previsões das ações.
 
 ## Estrutura do Projeto
 
@@ -47,21 +57,3 @@ Jefferson Valandro - [Site Pessoal](https://jeffev.github.io/jeffersonvalandro/)
 
 ## Licença
 Este projeto está licenciado sob a [Licença MIT](https://opensource.org/licenses/MIT).
-
-
-## Bônus
-
-### Lista de Ações com Fórmula de Graham
-
-Para visualizar ações em potencial, foi implementada a fórmula de Graham para avaliação. A fórmula de Graham considera o preço da ação, o lucro por ação (LPA) e o preço sobre o lucro (P/L) para determinar se uma ação está subvalorizada, sobrevalorizada ou com preço justo. A fórmula é dada por:
-
-\[ P = \sqrt{22.5 \times \text{LPA} \times \text{P/L}} \]
-
-onde:
-- \( P \) é o preço que a ação deveria ter;
-- \( \text{LPA} \) é o lucro por ação;
-- \( \text{P/L} \) é o preço sobre o lucro.
-
-### Análise de Sentimento do Mercado
-
-Foi realizada uma análise de sentimento do mercado utilizando as últimas notícias do site br.investing.com. As notícias foram analisadas para determinar se o sentimento geral do mercado é positivo, neutro ou negativo. Isso pode fornecer insights adicionais para a tomada de decisão em relação às previsões das ações.
